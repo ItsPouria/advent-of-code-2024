@@ -23,15 +23,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     left_numbers.sort();
     right_numbers.sort();
+
     let mut result = 0;
+    let mut similarity_score = 0;
     for i in 0..left_numbers.len() {
         if left_numbers[i] > right_numbers[i] {
             result += left_numbers[i] - right_numbers[i];
         } else {
             result += right_numbers[i] - left_numbers[i];
         }
+        let mut repeated = 0;
+        for number in right_numbers.iter() {
+            if &left_numbers[i] == number {
+                repeated += 1;
+            }
+        }
+        let weight = left_numbers[i] * repeated;
+        similarity_score = similarity_score + weight;
     }
-    println!("{}", result);
 
+    println!("Day 1, part 1 result is: {}", result);
+    println!("Day 1, part 2 result is: {}", similarity_score);
     Ok(())
 }
