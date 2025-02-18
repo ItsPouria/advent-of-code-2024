@@ -1,21 +1,49 @@
 use regex::Regex;
 use std::fs::read_to_string;
-fn main() {
+
+fn main() -> std::io::Result<()> {
     let file_path = "src/input.txt";
-    let re = Regex::new(r"mul\(\d{1,3},\d{1,3}\)").unwrap();
+    let re_num = Regex::new(r"mul\((\d{1,3}),(\d{1,3})\)").unwrap();
     let input: String = read_to_string(file_path).unwrap();
-    let mut results: Vec<&str> = Vec::new();
+    let mut results: i32 = 0;
 
-    for cap in re.captures_iter(&input) {
-        //println!("{}", cap.get(0).unwrap().as_str());
-        results.push(cap.get(0).unwrap().as_str());
+    for cap in re_num.captures_iter(&input) {
+        let num1 = cap.get(1).unwrap().as_str().parse::<i32>().unwrap();
+        let num2 = cap.get(2).unwrap().as_str().parse::<i32>().unwrap();
+        results += num1 * num2;
     }
+    println!("results for part one: {}", results);
 
-    results.iter().map(|m| { 
-       let nums: Vec<&str> = m[4..m.len()-1].split(',').collect();
-       let num0: i32 = nums[0].parse().unwrap();
-       let num1: i32 = nums[1].parse().unwrap();
+    let re2 = Regex::new(
+        r"(?<do>do\(\))|(?<dont>don't\(\))|mul\((?<op1>[0-9]{1,3}),(?<op2>[0-9]{1,3})\)",
+    )
+    .unwrap();
 
-       println!("{}", num0 * num1)
-    });
+    let mut enabled = true;
+    let sum: u32 = re2
+        .captures_iter(&input)
+        .filter_map(|cap| {
+            let r#match = &cap[0];
+
+            match (r#match, enabled) {
+                ("do()", _) => {
+                    enabled = true;
+                    None
+                }
+                ("don't()", _) => {
+                    enabled = false;
+                    None
+                }
+                (_, true) => {
+                    let op1 = cap["op1"].parse::<u32>().ok()?;
+                    let op2 = cap["op2"].parse::<u32>().ok()?;
+                    Some(op1 * op2)
+                }
+                _ => None,
+            }
+        })
+        .sum();
+    println!("answer for part 2 is: {}", sum);
+    println!("{}", enabled);
+    Ok(())
 }
